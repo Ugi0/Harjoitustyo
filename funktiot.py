@@ -1,7 +1,31 @@
 import PySimpleGUI as sg
 import copy
+import pickle
 
 from PySimpleGUI.PySimpleGUI import Button, popup
+
+class ElokuvaTeatteri:
+    def __init__(self):
+        self.salit = []
+        self.elokuvat = []
+        self.load()
+    def asetasalit(self,salit):
+        self.salit = salit
+        self.save()
+    def asetaelokuvat(self,elokuvat):
+        self.elokuvat = elokuvat
+        self.save()
+    def lisääelokuva(self,elokuva):
+        self.elokuvat.append(elokuva)
+        self.save()
+    def save(self):
+        file = open('data.txt','wb')
+        file.write(pickle.dumps(self.__dict__))
+        file.close()
+    def load(self):
+        file = open('data.txt','rb')
+        self.__dict__ = pickle.load(file)
+        return self
 
 class Sali:
     def __init__(self, ID, rivit, rivinpenkit):
@@ -11,10 +35,12 @@ class Sali:
         self.shows = {x:[] for x in range(7)}
     def lisää_elokuva(self, elokuva, paiva, aloitusaika):
         kopio = copy.deepcopy(elokuva)
-        self.shows[paiva].append((aloitusaika,kopio))
-        kopio.size = (self.rows,self.columns)
-        kopio.seats = [[0 for x in range(self.columns)] for x in range(self.rows)]
-        return self
+        if fit(aloitusaika,elokuva.kesto,[(x[0],x[1].kesto) for x in self.shows[paiva]]):
+            self.shows[paiva].append((aloitusaika,kopio))
+            kopio.size = (self.rows,self.columns)
+            kopio.seats = [[0 for x in range(self.columns)] for x in range(self.rows)]
+            return self
+        return False
     def get_shows(self):
         return self.shows
     def vapaa(self,aloitusaika,kesto):
@@ -36,18 +62,16 @@ class Näytös:
         return "{};{};{}".format(self.nimi,self.desc,self.kesto)
 
 def fit(aika, kesto, elokuvat):
-    sor = sorted(elokuvat, key = lambda x: x.alkuaika)[::-1]
+    sor = [(1441,0)] + [(tonum(z[0]),z[1]) for z in sorted(elokuvat, key = lambda x: x[0])][::-1] + [(719,0)]
     for i in range(len(sor)):
-        if aika+kesto < sor[i].alkuaika:
-            if i+1 == len(sor):
-                return True
-            elif sor[i+1].loppuaika < aika:
+        if tonum(aika)+kesto < sor[i][0]:
+            if sor[i+1][0]+sor[i+1][1] < tonum(aika):
                 return True
     return False
 
 
 def add_movie():
-    Näytökset = getshows()
+    from Harjoitustyö import teatteri
     layout = [[sg.Text("Elokuvan nimi",size=(10,1)),sg.Input()], 
     [sg.Text("Kuvaus",size=(10,1)),sg.Multiline()],
     [sg.Text("Kesto (mins)",size=(10,1)),sg.Spin([x for x in range(0,12)]),sg.Text("h",pad=(0,0)),sg.Spin([x for x in range(0,60)]),sg.Text("m",pad=(0,0))],
@@ -59,14 +83,11 @@ def add_movie():
             if values[0] == "" or (values[2] == '0' and values[3] == '0'):
                 sg.popup("Jokin syötteistä ei ole täytetty")
             else:
-                print(values)
-                Näytökset.append(Näytös(values[0],values[1],60*values[2]+values[3]))
-                with open("elokuvat.txt","w",encoding='utf-8') as t:
-                    for z in Näytökset:
-                        t.write(z.get_info()+"\n")
+                teatteri.lisääelokuva(Näytös(values[0],values[1],60*values[2]+values[3]))
                 break
         if event == sg.WIN_CLOSED:
             break
+    teatteri.save()
     window.close()
 
 def tonum(num):
@@ -85,11 +106,13 @@ def editshow(sali,movie,user=False):
         if event == "Valmis" or event == sg.WIN_CLOSED:
             break
         if event == "poista":
-            sali.shows[movie[2]].remove(movie[:2])
+            from Harjoitustyö import teatteri
+            teatteri.salit[sali.ID-1].shows[movie[2]].remove(movie[:2])
+            teatteri.save()
             window.close()
             return True
         if event == "Muuta varauksia":
-            showseats(movie[1],user)
+            showseats(movie[1],user,sali.ID,movie[2])
             break
     window.close()
 
@@ -104,14 +127,17 @@ def lisääohjelmasaliin(sali):
         if event == sg.WIN_CLOSED:
             break
         if any([values[x] == '' for x in values]):
-            sg.popup("You need to fill all of the inputs")
+            sg.popup("Elokuva tarvitsee otsikon ja keston")
         elif event == "Valmis":
             movie = copy.deepcopy(values[0])
             päivä = päivät.index(values[1])
             aika = f"{values[2]}:{values[3]}"
-            sali.lisää_elokuva(movie,päivä,aika)
-            window.close()
-            return True
+            from Harjoitustyö import teatteri
+            if teatteri.salit[sali.ID-1].lisää_elokuva(movie,päivä,aika) != False:
+                teatteri.save()
+                window.close()
+                return True
+            sg.popup("Elokuva ei mahdu tähän aikaan")
     window.close()
 
 
@@ -171,11 +197,29 @@ def näytäohjelmisto(sali,user):
                     window[event].update(visible=False)
                     sg.popup("Elokuva poistettu")
             else:
-                showseats(event[1])
+                showseats(event[1],False,sali.ID,event[2])
+    window.close()
+
+def remove_movie():
+    from Harjoitustyö import teatteri
+    layout = [[sg.Text(f"Näytä ohjelmisto salille")]] + [[sg.Button(f"{x.nimi}", key=x)] for x in teatteri.elokuvat] + [[sg.Stretch(),sg.Button("Valmis")]]
+    window = sg.Window(title="Valitse elokuva poistamiseen", layout=layout, size=(400, 400))
+    while True:
+        event, values = window.read()
+        if event in teatteri.elokuvat:
+            if checkwindow("Haluatko poistaa tämän elokuvan?"):
+                teatteri.elokuvat.remove(event)
+                teatteri.save()
+                break
+            else:
+                break
+        if event == "Valmis" or event == sg.WIN_CLOSED:
+            break
     window.close()
 
 def salivalinta(user = False):
-    from Harjoitustyö import Salit
+    from Harjoitustyö import teatteri
+    Salit = teatteri.salit
     layout = [[sg.Text(f"Näytä ohjelmisto salille")]] + [[sg.Button(f"Sali numero {x.ID}, koko {x.rows}x{x.columns}", key=x)] for x in Salit] + [[sg.Stretch(),sg.Button("Valmis")]]
     window = sg.Window(title="Valitse sali", layout=layout, size=(400, 400))
     while True:
@@ -190,6 +234,7 @@ def admin_menu():
     layout = [[sg.Text("Elokuvateatterin varausjärjestelmä: Admin")],
     [sg.Button("Näytä salin ohjelmisto")],
     [sg.Button("Lisää elokuva")],
+    [sg.Button("Poista elokuva ohjelmistosta")],
     [sg.Button("Selaa elokuvia")], 
     [sg.Stretch(),sg.Button("Valmis")]]
     window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400))
@@ -199,6 +244,8 @@ def admin_menu():
             salivalinta(True)
         if event == "Lisää elokuva":
             add_movie()
+        if event == "Poista elokuva ohjelmistosta":
+            remove_movie()
         if event == "Selaa elokuvia":
             browse(0,"admin")
         if event == "Valmis" or event == sg.WIN_CLOSED:
@@ -215,8 +262,8 @@ def totime(num,num2):
     txt = f"{hour}:{minute} - {hour2}:{minute2}"
     return txt
 
-def checkwindow():
-    layout = [[sg.Text("Oletko varma että haluat varata tämän paikan?")],[sg.Button("Kyllä"),sg.Button("En")]]
+def checkwindow(text):
+    layout = [[sg.Text(text)],[sg.Button("Kyllä"),sg.Button("En")]]
     window = sg.Window(title="Varmistus", layout=layout, size=(300, 100))
     while True:
         event, values = window.read()
@@ -227,7 +274,8 @@ def checkwindow():
             window.close()
             return True
 
-def adminseatwindow(movie,seat):
+def adminseatwindow(movie,seat,salinum,paiva):
+    from Harjoitustyö import teatteri
     layout = [[sg.Text("Muuta varausta tälle paikalle")],
     [sg.Button("Poista varaus"),sg.Button("Tämä penkki ei ole käytössä")]]
     window = sg.Window(title="Paikan varaus", layout=layout, size=(50*movie.size[1], 50*movie.size[0]))
@@ -236,16 +284,19 @@ def adminseatwindow(movie,seat):
         if event == sg.WIN_CLOSED:
             break
         if event == "Poista varaus":
-            movie.seats[seat[0]][seat[1]] = 0
+            [x for x in teatteri.salit[salinum-1].shows[paiva] if x[1] == movie][0][1].seats[seat[0]][seat[1]] = 0
+            teatteri.save()
             window.close()
             return 0
         if event == "Tämä penkki ei ole käytössä":
-            movie.seats[seat[0]][seat[1]] = 1
+            [x for x in teatteri.salit[salinum-1].shows[paiva] if x[1] == movie][0][1].seats[seat[0]][seat[1]] = 1
+            teatteri.save()
             window.close()
             return 1
     window.close()
 
-def showseats(movie,user=False):
+def showseats(movie,user,salinum,paiva):
+    from Harjoitustyö import teatteri
     layout = [[sg.Text(f"Varaa paikka elokuvaan {movie.nimi}")]] + [[sg.Stretch()]+[sg.Button('',button_color=("green" if movie.seats[i][j] == 0 else "red"), size=(4, 2), key=(i,j), pad=((0,2),(0,2))) for j in range(movie.size[1])]+[sg.Stretch()] for i in range(movie.size[0])] + [[sg.Stretch(),sg.Text("Teatterin kangas on tässä"),sg.Stretch()]]
     window = sg.Window(title="Paikan varaus", layout=layout, size=(50*movie.size[1], 50*movie.size[0]))
     while True:
@@ -253,18 +304,20 @@ def showseats(movie,user=False):
         if event == sg.WIN_CLOSED:
             break
         if user == True:
-            num = adminseatwindow(movie,event)
+            num = adminseatwindow(movie,event,salinum,paiva)
             window[event].update(button_color=("green" if num == 0 else "red"))
         else:
             if movie.seats[event[0]][event[1]]:
                 popup("Paikka on jo varattu")
-            elif checkwindow():
-                movie.varaapaikka(event[0],event[1],"user")
+            elif checkwindow("Oletko varma että haluat varata tämän paikan?"):
+                [x for x in teatteri.salit[salinum-1].shows[paiva] if x[1] == movie][0][1].varaapaikka(event[0],event[1],"user")
+                teatteri.save()
                 break
     window.close()
 
 def getmovietimes(elokuva):
-    from Harjoitustyö import Salit
+    from Harjoitustyö import teatteri
+    Salit = teatteri.salit
     li = []
     for sali in Salit:
         for z in range(7):
@@ -274,22 +327,29 @@ def getmovietimes(elokuva):
                     li.append((z,x[0],x[1],sali.ID))
     return sorted(sorted(li,key=lambda x : x[1]), key=lambda x : x[0])
 
+def fixtime(num: str):
+    hour,minute = num.split(":")
+    if len(minute) == 1:
+        minute = "0"+minute
+    return hour+":"+minute
+
 def reservewindow(movie):
     päivät = ["Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai","Sunnuntai"]
     elokuvat = getmovietimes(movie)
-    layout = [[sg.Text(f"Varaa aika elokuvaan {movie.nimi}")]] + [[sg.Button(f"{päivät[x[0]]} {x[1]} Sali {x[3]}", key = x[2])] for x in elokuvat]
+    layout = [[sg.Text(f"Varaa aika elokuvaan {movie.nimi}")]] + [[sg.Button(f"{päivät[x[0]]} {fixtime(x[1])} Sali {x[3]}", key = x)] for x in elokuvat]
     window = sg.Window(title="Ajan varaus", layout=layout, size=(400, 400))
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
             break
         else:
-            showseats(event)
+            showseats(event[2],False,event[3],event[0])
             window.close()
     window.close()
 
 def getshows():
-    return [Näytös(x.split(";")[0],x.split(";")[1],x.split(";")[2]) for x in open("elokuvat.txt","r",encoding="utf-8").read().split("\n") if x != '']
+    from Harjoitustyö import teatteri
+    return teatteri.elokuvat
 
 def browse(i,log=True):
     elokuvat = getshows()
