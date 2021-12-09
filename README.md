@@ -65,8 +65,4 @@ fit -> tarkistaa mahtuuko näytös annetulle ajalle
 ## Mahdolisten ulkoisten kirjastojen käyttö
 * Graafisen käyttöliittymän rakentamiseen on käytetty kirjastoa nimeltä `PySimpleGUI`
 * Luokkien kopioimiseen on käytetty `copy` kirjastoa
-<<<<<<< HEAD
 * Ohjelman tietojen tallentamiseen ja lataamiseen käytetään `pickle` kirjastoa
-=======
-* Ohjelman tietojen tallentamiseen ja lataamiseen käytetään `pickle` kirjastoa
->>>>>>> ee27b03b821f8a4f476f7a937130ab1d2c2968fd
