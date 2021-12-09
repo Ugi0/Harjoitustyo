@@ -1,7 +1,6 @@
 import PySimpleGUI as sg
 import copy
 import pickle
-back_color = "black"
 
 class ElokuvaTeatteri:
     def __init__(self):
