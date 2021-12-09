@@ -66,4 +66,4 @@ fit -> tarkistaa mahtuuko näytös annetulle ajalle
 
 ## Työn suoritus
 * Ohjelma suoritetaan suorittamalla `Harjoitustyö.py` tiedoston.
-* Kirjautuminen tapahtuu painalla `kirjaudu` nappia ja kirjautumalla joko käyttäjänä `user, user` tai ylläpitäjä `admin, admin` 
+* Kirjautuminen tapahtuu painalla `kirjaudu` nappia ja kirjautumalla joko käyttäjänä `user, user` tai ylläpitäjänä `admin, admin` 
