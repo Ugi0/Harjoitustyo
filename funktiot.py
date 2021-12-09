@@ -1,8 +1,7 @@
 import PySimpleGUI as sg
 import copy
 import pickle
-
-from PySimpleGUI.PySimpleGUI import Button, popup
+back_color = "black"
 
 class ElokuvaTeatteri:
     def __init__(self):
@@ -75,8 +74,8 @@ def add_movie():
     layout = [[sg.Text("Elokuvan nimi",size=(10,1)),sg.Input()], 
     [sg.Text("Kuvaus",size=(10,1)),sg.Multiline()],
     [sg.Text("Kesto (mins)",size=(10,1)),sg.Spin([x for x in range(0,12)]),sg.Text("h",pad=(0,0)),sg.Spin([x for x in range(0,60)]),sg.Text("m",pad=(0,0))],
-    [sg.Stretch(),sg.Button("Lisää elokuva")]]
-    window = sg.Window(title="Elokuvan lisäys", layout=layout, size=(400, 400))
+    [sg.Stretch(),sg.Button("Lisää elokuva",pad=((0,0),(100,0)))]]
+    window = sg.Window(title="Elokuvan lisäys", layout=layout, size=(400, 250),modal=True)
     while True:
         event, values = window.read()
         if event == "Lisää elokuva":
@@ -99,8 +98,8 @@ def getspace(kesto,num,num2):
     return (num2-num)
 
 def editshow(sali,movie,user=False):
-    layout = [[sg.Text(f"Elokuva {movie[1].nimi}")],[sg.Button("Poista tämä ohjelmistosta",key="poista")],[sg.Button("Muuta varauksia")]]
-    window = sg.Window(title="Ohjelmiston muutos", layout=layout, size=(400, 400))
+    layout = [[sg.Stretch(),sg.Text(f"Elokuva {movie[1].nimi}",pad=((0,0),(0,50))),sg.Stretch()],[sg.Stretch(),sg.Button("Poista tämä ohjelmistosta",key="poista"),sg.Stretch()],[sg.Stretch(),sg.Button("Muuta varauksia"),sg.Stretch()]]
+    window = sg.Window(title="Ohjelmiston muutos", layout=layout, size=(400, 200),modal=True)
     while True:
         event, values = window.read()
         if event == "Valmis" or event == sg.WIN_CLOSED:
@@ -120,8 +119,9 @@ def lisääohjelmasaliin(sali):
     päivät = ["Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai","Sunnuntai"]
     elokuvat = getshows()
     layout = [[sg.Text("Elokuva",size=(7,1)),sg.Combo(values = [x for x in elokuvat])],[sg.Text("Päivä",size=(7,1)),sg.Combo(values = päivät)],
-    [sg.Text("Aika",size=(7,1)),sg.Spin([x for x in range(12,24)]),sg.Text(":",pad=(0,0)),sg.Spin([x for x in range(0,60)])],[sg.Button("Valmis")]]
-    window = sg.Window(title="Lisää elokuva ohjelmistoon", layout=layout, size=(400, 400))
+    [sg.Text("Aika",size=(7,1)),sg.Spin([x for x in range(12,24)]),sg.Text(":",pad=(0,0)),sg.Spin([x for x in range(0,60)])],
+    [sg.Stretch(),sg.Button("Valmis",pad=((0,0),(70,0)))]]
+    window = sg.Window(title="Lisää elokuva ohjelmistoon", layout=layout, size=(400, 200),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -146,31 +146,31 @@ def näytäohjelmisto(sali,user):
     height = 3
     layout = [ [
         sg.Column(
-            [[sg.Text("Maanantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[0]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(0,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[0]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[0])]
+            [[sg.Text("Maanantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[0]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(0,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[0]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[0])]
         ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Tiistai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[1]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(1,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[1]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[1])]
+            [[sg.Text("Tiistai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[1]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(1,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[1]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[1])]
             ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Keskiviikko",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[2]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(2,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[2]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[2])]
+            [[sg.Text("Keskiviikko",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[2]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(2,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[2]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[2])]
             ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Torstai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[3]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(3,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[3]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[3])]
+            [[sg.Text("Torstai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[3]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(3,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[3]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[3])]
             ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Perjantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[4]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(4,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[4]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[4])]
+            [[sg.Text("Perjantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[4]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(4,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[4]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[4])]
             ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Lauantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[5]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(5,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[5]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[5])]
+            [[sg.Text("Lauantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[5]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(5,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[5]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[5])]
             ),
         sg.VSeparator(),
         sg.Column(
-            [[sg.Text("Sunnuntai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[6]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(6,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[6]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[6])]
+            [[sg.Text("Sunnuntai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[6]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(6,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[6]+ [('24:00',0)])[i+1][0]))),expand_x=True)] for i,x in enumerate(sali.shows[6])]
             )
             ]]
     if user == True:
@@ -178,7 +178,7 @@ def näytäohjelmisto(sali,user):
         [[sg.Button("Lisää ohjelmistoa\n saliin", size=(10,4),key="lisää")]]
             ,vertical_alignment='bottom')
         )
-    window = sg.Window(title=f"Salin {sali.ID} ohjelmisto", layout=layout, size=(1330 if user == True else 1220, 830))
+    window = sg.Window(title=f"Salin {sali.ID} ohjelmisto", layout=layout, size=(1330 if user == True else 1220, 830),modal=True)
     while True:
         event, values = window.read()
         if event == "Valmis" or event == sg.WIN_CLOSED:
@@ -186,6 +186,7 @@ def näytäohjelmisto(sali,user):
         if event == "lisää":
             if lisääohjelmasaliin(sali):
                 layout = [ [sg.Column([[sg.Text("Maanantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[0]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(0,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[0]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[0])]),sg.VSeparator(),sg.Column([[sg.Text("Tiistai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[1]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(1,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[1]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[1])]),sg.VSeparator(),sg.Column([[sg.Text("Keskiviikko",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[2]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(2,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[2]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[2])]),sg.VSeparator(),sg.Column([[sg.Text("Torstai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[3]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(3,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[3]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[3])]),sg.VSeparator(),sg.Column([[sg.Text("Perjantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[4]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(4,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[4]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[4])]),sg.VSeparator(),sg.Column([[sg.Text("Lauantai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[5]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(5,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[5]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[5])]),sg.VSeparator(),sg.Column([[sg.Text("Sunnuntai",size=(width, height),pad=((0,0), (0,getspace(0,"12:00",(sali.shows[6]+ [('24:00',0)])[0][0]))))]] + [[sg.Button(x[1].nimi+"\n"+totime(tonum(x[0]),tonum(x[0])+x[1].kesto),key=x+(6,),size=(17,x[1].kesto//16),pad=((0,0), (0,getspace(x[1].kesto,x[0],(sali.shows[6]+ [('24:00',0)])[i+1][0]))))] for i,x in enumerate(sali.shows[6])])]]
+                layout[0].append(sg.Column([[sg.Button("Lisää ohjelmistoa\n saliin", size=(10,4),key="lisää")]],vertical_alignment='bottom'))
                 window1 = sg.Window(title=f"Salin {sali.ID} ohjelmisto", layout=layout, size=(1330 if user == True else 1220, 830))
                 window.close()
                 window = window1
@@ -202,8 +203,11 @@ def näytäohjelmisto(sali,user):
 
 def remove_movie():
     from Harjoitustyö import teatteri
-    layout = [[sg.Text(f"Näytä ohjelmisto salille")]] + [[sg.Button(f"{x.nimi}", key=x)] for x in teatteri.elokuvat] + [[sg.Stretch(),sg.Button("Valmis")]]
-    window = sg.Window(title="Valitse elokuva poistamiseen", layout=layout, size=(400, 400))
+    leng = len(teatteri.elokuvat)
+    layout = [[sg.Column([[sg.Stretch(),sg.Text(f"Valitse elokuva",pad=((0,0),(0,50))),sg.Stretch()]] + 
+    [[sg.Stretch()]+[sg.Button(f"{x.nimi}", key=x)]+[sg.Stretch()] for x in teatteri.elokuvat] +
+     [[sg.Stretch(),sg.Button("Valmis",pad=((0,0),(90,0)))]], expand_y=True, expand_x=True)]]
+    window = sg.Window(title="Valitse elokuva poistamiseen", layout=layout, size=(400, 190+leng*35),modal=True)
     while True:
         event, values = window.read()
         if event in teatteri.elokuvat:
@@ -220,8 +224,10 @@ def remove_movie():
 def salivalinta(user = False):
     from Harjoitustyö import teatteri
     Salit = teatteri.salit
-    layout = [[sg.Text(f"Näytä ohjelmisto salille")]] + [[sg.Button(f"Sali numero {x.ID}, koko {x.rows}x{x.columns}", key=x)] for x in Salit] + [[sg.Stretch(),sg.Button("Valmis")]]
-    window = sg.Window(title="Valitse sali", layout=layout, size=(400, 400))
+    layout = [[sg.Column([[sg.Stretch(),sg.Text(f"Näytä ohjelmisto salille",pad=((0,0),(0,50))),sg.Stretch()]] + 
+    [[sg.Stretch()]+[sg.Button(f"Sali numero {x.ID}, koko {x.rows}x{x.columns}", key=x)]+[sg.Stretch()] for x in Salit] + 
+    [[sg.Stretch(),sg.Button("Valmis",pad=((0,0),(210,0)))]], expand_x=True, expand_y=True)]]
+    window = sg.Window(title="Valitse sali", layout=layout, size=(400, 400),modal=True)
     while True:
         event, values = window.read()
         if event in Salit:
@@ -231,13 +237,13 @@ def salivalinta(user = False):
     window.close()
 
 def admin_menu():
-    layout = [[sg.Text("Elokuvateatterin varausjärjestelmä: Admin")],
-    [sg.Button("Näytä salin ohjelmisto")],
-    [sg.Button("Lisää elokuva")],
-    [sg.Button("Poista elokuva ohjelmistosta")],
-    [sg.Button("Selaa elokuvia")], 
-    [sg.Stretch(),sg.Button("Valmis")]]
-    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400))
+    layout = [[sg.Column([[sg.Stretch(),sg.Text("Elokuvateatterin varausjärjestelmä: Admin",pad=((0,0),(0,50)))],
+    [sg.Stretch(),sg.Button("Näytä salin ohjelmisto",size=(20,1)),sg.Stretch()],
+    [sg.Stretch(),sg.Button("Lisää elokuva",size=(20,1)),sg.Stretch()],
+    [sg.Stretch(),sg.Button("Poista elokuva ohjelmistosta",size=(20,1)),sg.Stretch()],
+     [sg.Stretch(),sg.Button("Selaa elokuvia",size=(20,1),pad=((0,0),(0,160))),sg.Stretch()],
+     [sg.Stretch(),sg.Button("Sulje",size=(10,1))]], expand_y=True, expand_x=True)]]
+    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400), modal=True)
     while True:
         event, values = window.read()
         if event == "Näytä salin ohjelmisto":
@@ -248,7 +254,7 @@ def admin_menu():
             remove_movie()
         if event == "Selaa elokuvia":
             browse(0,"admin")
-        if event == "Valmis" or event == sg.WIN_CLOSED:
+        if event == "Sulje" or event == sg.WIN_CLOSED:
             break
     window.close()
 
@@ -264,7 +270,7 @@ def totime(num,num2):
 
 def checkwindow(text):
     layout = [[sg.Text(text)],[sg.Button("Kyllä"),sg.Button("En")]]
-    window = sg.Window(title="Varmistus", layout=layout, size=(300, 100))
+    window = sg.Window(title="Varmistus", layout=layout, size=(300, 65),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == "En":
@@ -278,7 +284,7 @@ def adminseatwindow(movie,seat,salinum,paiva):
     from Harjoitustyö import teatteri
     layout = [[sg.Text("Muuta varausta tälle paikalle")],
     [sg.Button("Poista varaus"),sg.Button("Tämä penkki ei ole käytössä")]]
-    window = sg.Window(title="Paikan varaus", layout=layout, size=(50*movie.size[1], 50*movie.size[0]))
+    window = sg.Window(title="Paikan varaus", layout=layout, size=(300, 70),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -297,8 +303,8 @@ def adminseatwindow(movie,seat,salinum,paiva):
 
 def showseats(movie,user,salinum,paiva):
     from Harjoitustyö import teatteri
-    layout = [[sg.Text(f"Varaa paikka elokuvaan {movie.nimi}")]] + [[sg.Stretch()]+[sg.Button('',button_color=("green" if movie.seats[i][j] == 0 else "red"), size=(4, 2), key=(i,j), pad=((0,2),(0,2))) for j in range(movie.size[1])]+[sg.Stretch()] for i in range(movie.size[0])] + [[sg.Stretch(),sg.Text("Teatterin kangas on tässä"),sg.Stretch()]]
-    window = sg.Window(title="Paikan varaus", layout=layout, size=(50*movie.size[1], 50*movie.size[0]))
+    layout = [[sg.Stretch(),sg.Text(f"Varaa paikka elokuvaan {movie.nimi}",pad=((0,0),(0,30))),sg.Stretch()]] + [[sg.Stretch()]+[sg.Button('',button_color=("green" if movie.seats[i][j] == 0 else "red"), size=(4, 2), key=(i,j), pad=((0,2),(0,2))) for j in range(movie.size[1])]+[sg.Stretch()] for i in range(movie.size[0])] + [[sg.Stretch(),sg.Text("Teatterin kangas on tässä",font="bold",pad=((0,0),(30,0))),sg.Stretch()]]
+    window = sg.Window(title="Paikan varaus", layout=layout, size=(50+45*movie.size[1], 110+45*movie.size[0]),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -308,7 +314,7 @@ def showseats(movie,user,salinum,paiva):
             window[event].update(button_color=("green" if num == 0 else "red"))
         else:
             if movie.seats[event[0]][event[1]]:
-                popup("Paikka on jo varattu")
+                sg.popup("Paikka on jo varattu")
             elif checkwindow("Oletko varma että haluat varata tämän paikan?"):
                 [x for x in teatteri.salit[salinum-1].shows[paiva] if x[1] == movie][0][1].varaapaikka(event[0],event[1],"user")
                 teatteri.save()
@@ -336,8 +342,8 @@ def fixtime(num: str):
 def reservewindow(movie):
     päivät = ["Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai","Sunnuntai"]
     elokuvat = getmovietimes(movie)
-    layout = [[sg.Text(f"Varaa aika elokuvaan {movie.nimi}")]] + [[sg.Button(f"{päivät[x[0]]} {fixtime(x[1])} Sali {x[3]}", key = x)] for x in elokuvat]
-    window = sg.Window(title="Ajan varaus", layout=layout, size=(400, 400))
+    layout = [[sg.Stretch(),sg.Text(f"Varaa aika elokuvaan {movie.nimi}",pad=((0,0),(0,50))),sg.Stretch()]] + [[sg.Stretch()]+[sg.Button(f"{päivät[x[0]]} {fixtime(x[1])} Sali {x[3]}", key = x)]+[sg.Stretch()] for x in elokuvat]
+    window = sg.Window(title="Ajan varaus", layout=layout, size=(400, 200+35*len(elokuvat)),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED:
@@ -364,7 +370,7 @@ def browse(i,log=True):
     ]]
     if log == "admin":
         layout = [[sg.Column([[sg.Text(elokuvat[i%len(elokuvat)].nimi)], [sg.Text(elokuvat[i%len(elokuvat)].desc,size=(30, 26))], [sg.Button("Valmis"),sg.Stretch()]]),sg.VSeparator(),sg.Column([[sg.Text(elokuvat[(i+1)%len(elokuvat)].nimi)], [sg.Text(elokuvat[(i+1)%len(elokuvat)].desc,size=(30, 26))], [sg.Stretch(),sg.Button("Selaa lisää elokuvia")]])]]
-    window = sg.Window(title="Elokuvateatterin nykyiset elokuvat", layout=layout, size=(565, 500))
+    window = sg.Window(title="Elokuvateatterin nykyiset elokuvat", layout=layout, size=(565, 500),modal=True)
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == "Valmis":
@@ -381,9 +387,9 @@ def browse(i,log=True):
     window.close()
 
 def menu_notloggedin():
-    layout = [[sg.Stretch(),sg.Button("Kirjaudu")],
-    [sg.Button("Selaa salien näytöksiä",size=(20,1))], [sg.Button("Selaa elokuvia",size=(20,1))], [sg.Stretch(),sg.Button("Valmis")]]
-    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400))
+    layout = [[sg.Column([[sg.Stretch(),sg.Button("Kirjaudu",size=(10,1),pad=((0,0),(0,50)))],
+    [sg.Stretch(),sg.Button("Selaa salien näytöksiä",size=(20,1)),sg.Stretch()], [sg.Stretch(),sg.Button("Selaa elokuvia",size=(20,1),pad=((0,0),(0,210))),sg.Stretch()], [sg.Stretch(),sg.Button("Sulje",size=(10,1))]], expand_y=True, expand_x=True)]]
+    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400),modal=True)
     while True:
         event, values = window.read()
         if event == "Selaa elokuvia":
@@ -395,23 +401,23 @@ def menu_notloggedin():
                 return account
         if event == "Selaa salien näytöksiä":
             salivalinta("notloggedin")
-        if event == "Valmis" or event == sg.WIN_CLOSED:
+        if event == "Sulje" or event == sg.WIN_CLOSED:
             break
     window.close()
 
 def menu_loggedin():
-    layout = [[sg.Stretch(),sg.Text("Elokuvateatterin varausjärjestelmä: Käyttäjä")],
-        [sg.Button("Selaa salien näytöksiä")], 
-        [sg.Button("Selaa elokuvia")],
-        [sg.Button("Valmis")]]
-    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400))
+    layout = [[sg.Column([[sg.Stretch(),sg.Text("Elokuvateatterin varausjärjestelmä: Käyttäjä",pad=((0,0),(0,50)))],
+    [sg.Stretch(),sg.Button("Selaa salien näytöksiä",size=(20,1)),sg.Stretch()],
+     [sg.Stretch(),sg.Button("Selaa elokuvia",size=(20,1),pad=((0,0),(0,210))),sg.Stretch()],
+     [sg.Stretch(),sg.Button("Sulje",size=(10,1))]], expand_y=True, expand_x=True)]]
+    window = sg.Window(title="Elokuvateatterin varausjärjestelmä", layout=layout, size=(400, 400),modal=True)
     while True:
         event, values = window.read()
         if event == "Selaa elokuvia":
             browse(0)
         if event == "Selaa salien näytöksiä":
             salivalinta()
-        if event == "Valmis" or event == sg.WIN_CLOSED:
+        if event == "Sulje" or event == sg.WIN_CLOSED:
             break
     window.close()
 
@@ -419,8 +425,8 @@ def login():
     from Harjoitustyö import credentials
     layout = [[sg.Text("Käyttäjänimi",size = (9,1)),sg.Input("")], 
     [sg.Text("Salasana",size = (9,1)),sg.Input("")],
-    [sg.Stretch(),sg.Button("Kirjaudu")]]
-    window = sg.Window(title="Sisäänkirjautuminen", layout=layout, size=(300, 100))
+    [sg.Stretch(),sg.Button("Kirjaudu",pad=((0,0),(10,0)))]]
+    window = sg.Window(title="Sisäänkirjautuminen", layout=layout, size=(300, 100),modal=True)
     while True:
         event, values = window.read()
         if event == "Kirjaudu":
