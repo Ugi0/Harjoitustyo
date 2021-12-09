@@ -65,4 +65,5 @@ fit -> tarkistaa mahtuuko näytös annetulle ajalle
 * Ohjelman tietojen tallentamiseen ja lataamiseen käytetään `pickle` kirjastoa
 
 ## Työn suoritus
-* Ohjelma suoritetaan suorittamalla `Harjoitustyö.py` tiedoston. 
+* Ohjelma suoritetaan suorittamalla `Harjoitustyö.py` tiedoston.
+* Kirjautuminen tapahtuu painalla `kirjaudu` nappia ja kirjautumalla joko käyttäjänä `user, user` tai ylläpitäjä `admin, admin` 
