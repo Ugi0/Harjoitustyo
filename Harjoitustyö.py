@@ -16,7 +16,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    # TODO
-    # Parempi asettelu napeille
-    # Documentation
