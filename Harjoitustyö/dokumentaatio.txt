@@ -1,5 +1,3 @@
-# Dokumentaatio
-
 ## Työn aihe ja kuvaus
 Elokuvateatterin varausjärjestelmä, jossa graafinen käyttöliittymä
 
