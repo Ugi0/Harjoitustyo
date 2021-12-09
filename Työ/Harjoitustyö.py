@@ -1,5 +1,4 @@
 from funktiot import *
-
 credentials = {
     'admin': 'admin',
     'user': 'user'
