@@ -13,6 +13,6 @@ Elokuvateatterin varausjärjestelmä, jossa graafinen käyttöliittymä
 
 
 ## Mahdolisten ulkoisten kirjastojen käyttö
-Graafisen käyttöliittymän rakentamiseen on käytetty kirjastoa nimeltä `PySimpleGUI`
-Luokkien kopioimiseen on käytetty `copy` kirjastoa
-Ohjelman tietojen tallentamiseen ja lataamiseen käytetään `pickle` kirjastoa
+* Graafisen käyttöliittymän rakentamiseen on käytetty kirjastoa nimeltä `PySimpleGUI`
+* Luokkien kopioimiseen on käytetty `copy` kirjastoa
+* Ohjelman tietojen tallentamiseen ja lataamiseen käytetään `pickle` kirjastoa
